@@ -9,14 +9,16 @@ namespace StromStotteKalkulator.Controllers
         private readonly DataController _dataController;
         private readonly IDataRetreiver _dataRetreiver;
 
-        private static readonly Dictionary<string, string> _areaTranslation = new Dictionary<string, string>
-        {
-            {"NO1","Oslo"},
-            {"NO2","Kr.sand"},
-            {"NO3","Tr.heim"},
-            {"NO4","Tromsø"},
-            {"NO5","Bergen"},
-        };
+        private static readonly Dictionary<string, string> _areaTranslation = new(
+            new Dictionary<string, string>
+            {
+                {"NO1","Oslo"},
+                {"NO2","Kr.sand"},
+                {"NO3","Tr.heim"},
+                {"NO4","Tromsø"},
+                {"NO5","Bergen"},
+            },
+            StringComparer.InvariantCultureIgnoreCase);
 
         public StromStotteController(DataController dataController, IDataRetreiver retreiver)
         {
@@ -24,7 +26,7 @@ namespace StromStotteKalkulator.Controllers
             _dataRetreiver = retreiver;
         }
 
-        [HttpGet("{area}")]
+        [HttpGet("area/{area}")]
         public async Task<IActionResult> Get(string area)
         {
             var stotte = await Calculate(area).ConfigureAwait(false);
@@ -35,6 +37,17 @@ namespace StromStotteKalkulator.Controllers
 
             return new OkObjectResult(stotte);
         }
+
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAll()
+        {
+            var all = _areaTranslation.Keys.Select(async k => await Calculate(k)).ToArray();
+            await Task.WhenAll(all);
+
+            // This is safe since we await on line above
+            return new ObjectResult(all.Select(a=>a.Result));
+        }
+
 
         private async Task<StromStotte?> Calculate(string area)
         {
@@ -53,6 +66,7 @@ namespace StromStotteKalkulator.Controllers
 
             return new StromStotte()
             {
+                Name = stromArea,
                 Value = stotte
             };
         }
@@ -69,6 +83,8 @@ namespace StromStotteKalkulator.Controllers
 
     public class StromStotte
     {
+        public string Name { get; set; }
+
         public double Value { get; set; }
 
         public double ValueWithVAT => Value * 1.25;

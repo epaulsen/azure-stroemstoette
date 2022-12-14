@@ -35,6 +35,23 @@ namespace StromStotteKalkulator.Test
             }
         }
 
+        [Fact]
+        public async Task GetAll_Works()
+        {
+            var root = JsonSerializer.Deserialize<Root>(File.ReadAllText("TestData/TestData.json"));
+            var dataController = new DataController();
+
+            var retreiverMock = new Mock<IDataRetreiver>();
+            retreiverMock.Setup(m => m.FetchPricesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(root);
+
+            var webController = new StromStotteController(dataController, retreiverMock.Object);
+
+            var result = await webController.GetAll();
+            //result?.Value.Should().NotBeNull();
+
+            //var ss = (result.Value as IEnumerable<StromStotte>).ToArray();
+        }
+
         [Theory]
         [MemberData(nameof(TestData))]
         public async Task PriceController_Works(string area)

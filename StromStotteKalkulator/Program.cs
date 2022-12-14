@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.StaticFiles.Infrastructure;
 using StromStotteKalkulator;
 using StromStotteKalkulator.Data;
 
@@ -27,6 +28,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.MapControllers();
 
